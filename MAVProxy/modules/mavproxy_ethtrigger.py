@@ -17,7 +17,7 @@ class ethtrigger(mp_module.MPModule):
         """Initialise module"""
         super(ethtrigger, self).__init__(mpstate, "ethtrigger", "")
 
-        TCP_IP = '192.168.10.177'
+        TCP_IP = '192.168.15.50'
         TCP_PORT = 23
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((TCP_IP, TCP_PORT))
