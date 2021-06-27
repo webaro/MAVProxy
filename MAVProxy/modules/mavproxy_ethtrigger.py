@@ -24,7 +24,7 @@ class ethtrigger(mp_module.MPModule):
 
         self.ethtrigger_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
-              ('steps', int, -1000),
+              ('steps', int, 800),
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set'])
 
