@@ -26,10 +26,10 @@ class ethtrigger(mp_module.MPModule):
             self.s.settimeout(None)
         except:
             pass
-        
+
         self.ethtrigger_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
-              ('steps', int, 800),
+              ('steps', int, 240),
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set'])
 
