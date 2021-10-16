@@ -58,7 +58,7 @@ class ethtrigger(mp_module.MPModule):
             if self.ethtrigger_settings.verbose:
                 print("CAMERA_FEEDBACK")
 
-            MESSAGE = str(self.ethtrigger_settings.steps) + "\r"
+            MESSAGE = "xt" + str(self.ethtrigger_settings.steps) + "\r"
             try:
                 self.s.send(MESSAGE.encode())
             except:
