@@ -3,8 +3,7 @@
 import os
 import os.path
 import sys
-from pymavlink import mavutil
-import errno
+import json
 import socket
 
 from MAVProxy.modules.lib import mp_module
@@ -30,8 +29,12 @@ class ethtrigger(mp_module.MPModule):
         self.ethtrigger_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('steps', int, 200),
+              ('chopoffset', int, 10),   # chopoffet in cm
+              ('mode', int, 2),          # mode: 1=seed, 2=seed and collect data, 3=chop weeds
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set'])
+        self.seeds = {}
+        self.seeds['seeds'] = []
 
     def usage(self):
         '''show help on command line options'''
@@ -45,6 +48,8 @@ class ethtrigger(mp_module.MPModule):
             print(self.status())
         elif args[0] == "set":
             self.ethtrigger_settings.command(args[1:])
+#        elif args[0] == "write":
+# 
         else:
             print(self.usage())
 
@@ -54,21 +59,41 @@ class ethtrigger(mp_module.MPModule):
 
     def mavlink_packet(self, m):
         '''handle mavlink packets'''
+        if self.ethtrigger_settings.mode == 3:
+            if m.get_type() == 'AHRS2':
+                print("AHRS2")
+
         if m.get_type() == 'CAMERA_FEEDBACK':
+            if self.ethtrigger_settings.mode < 3:
+                if self.ethtrigger_settings.mode == 2:
+                    time = m.time_usec
+                    index = m.img_idx
+                    lat = m.lat * 1e-7
+                    lng = m.lng * 1e-7
+                    
+                    print("Lat: " + str(lat) + "  Lon: " + str(lng) + "  Index: " + str(index))
+
+                    self.seeds['seeds'].append({
+                        'time': time,
+                        'index': index,
+                        'lat': lat,
+                        'lng': lng
+                    })
+                    print(json.dumps(self.seeds, indent=4))
+                MESSAGE = "xt" + str(self.ethtrigger_settings.steps) + "\r"
+                try:
+                    self.s.send(MESSAGE.encode())
+                except:
+                    # recreate the socket and reconnect
+                    self.s.close()
+                    self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s.settimeout(1)
+                    self.s.connect((TCP_IP, TCP_PORT))
+                    self.s.settimeout(None)
+                    self.s.send(MESSAGE.encode())
+
             if self.ethtrigger_settings.verbose:
                 print("CAMERA_FEEDBACK")
-
-            MESSAGE = str("xt" + self.ethtrigger_settings.steps) + "\r"
-            try:
-                self.s.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s.close()
-                self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s.settimeout(1)
-                self.s.connect((TCP_IP, TCP_PORT))
-                self.s.settimeout(None)
-                self.s.send(MESSAGE.encode())
 
 def init(mpstate):
     '''initialise module'''
