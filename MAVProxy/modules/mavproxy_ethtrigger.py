@@ -6,12 +6,21 @@ import sys
 import json
 import socket
 
+from pymavlink import mavutil
+
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 
 TCP_IP = '192.168.15.50'
 TCP_PORT = 23
+
+class HOE:
+    HOE_IN = 1
+    HOE_OUT = 2
+    HOE_INIT = 3
+    HOE_FINISH = 4
+    HOE_ERROR = 5
 
 class ethtrigger(mp_module.MPModule):
     def __init__(self, mpstate):
@@ -29,13 +38,18 @@ class ethtrigger(mp_module.MPModule):
         self.ethtrigger_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('steps', int, 200),
-              ('chopdistance', float, 0.1),  # chopdistance m
+              ('hoeoutdistance', float, 0.1),  # hoeoutdistance m
+              ('hoeindistance', float, 0.1),  # hoeindistance m
+              ('hoefirstdistance', float, 1.0),  # hoefirstdistance m
+              ('hoemaxdistance', float, 1.25),  # hoemaxdistance m
               ('mode', int, 2),              # mode: 1=seed, 2=seed and collect data, 3=chop weeds
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set','seed'])
         
         self.simstate = 0
+        self.hoestatus = HOE.HOE_INIT
         self.seed_index = 1
+        self.seed_position = None
         self.seeds = {}
         self.seeds['seeds'] = []
 
@@ -66,6 +80,7 @@ class ethtrigger(mp_module.MPModule):
         if cmd[0] == 'read':
             with open('/home/mirko/data/webaro/seed.txt') as json_file:
                 self.seeds = json.load(json_file)
+                self.seed_position = self.get_position(self.seed_index)
         if cmd[0] == 'write':
             with open('/home/mirko/data/webaro/seed.txt', 'w') as json_file:
                 json.dump(self.seeds, json_file)
@@ -74,20 +89,51 @@ class ethtrigger(mp_module.MPModule):
 
         print("seed: " + cmd[0])
 
+    def get_position(self, index):
+        for dict in self.seeds['seeds']:
+            if dict['index'] == index:
+                return dict
+        return None
+
     def mavlink_packet(self, m):
         '''handle mavlink packets'''
+        if m.get_type() == "COMMAND_LONG":
+            print ("Get Long")
+            if m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONFIGURE:
+                print ("Got Message Digicam_configure")
+            elif m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONTROL:
+                print ("Got Message Digicam_control")
+
         if m.get_type() == 'SIMSTATE':
             self.simstate = 1
         
         if self.ethtrigger_settings.mode == 3:
             if m.get_type() == 'AHRS2':
-                for dict in self.seeds['seeds']:
-                    if dict['index'] == self.seed_index:
-                        distance = mp_util.gps_distance(dict['lat'], dict['lng'], m.lat * 1e-7, m.lng * 1e-7)
-                        if distance < self.ethtrigger_settings.chopdistance:
-                            print("chop: " + str(distance) + " m")
+                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lng * 1e-7)
+                if self.hoestatus == HOE.HOE_INIT:
+                    if distance < self.ethtrigger_settings.hoefirstdistance:
+                        self.hoestatus = HOE.HOE_OUT
+                        print("hoeinit: " + str(distance) + " m")
+                        self.hoestatus = HOE.HOE_OUT
+                elif self.hoestatus == HOE.HOE_IN:
+                    if distance > self.ethtrigger_settings.hoemaxdistance:
+                        self.hoestatus = HOE.HOE_ERROR
+                    elif distance > self.ethtrigger_settings.hoeoutdistance:
+                        if self.get_position(self.seed_index + 1) != None:
+                            self.hoestatus = HOE.HOE_OUT
                             self.seed_index += 1
-
+                            self.seed_position = self.get_position(self.seed_index)
+                            print("hoeout: " + str(distance) + " m")
+                        else:
+                            self.hoestatus = HOE.HOE_FINISH
+                            print("hoefinish: " + str(distance) + " m")
+                elif self.hoestatus == HOE.HOE_OUT:
+                    if distance > self.ethtrigger_settings.hoemaxdistance:
+                        self.hoestatus = HOE.HOE_ERROR
+                        print("ERROR hoein: " + str(distance) + " m")
+                    elif distance < self.ethtrigger_settings.hoeindistance:
+                        self.hoestatus = HOE.HOE_IN
+                        print("hoein: " + str(distance) + " m")
 
         if m.get_type() == 'CAMERA_FEEDBACK':
             if self.ethtrigger_settings.mode < 3:
