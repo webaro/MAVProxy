@@ -38,15 +38,15 @@ class ethtrigger(mp_module.MPModule):
         self.ethtrigger_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('steps', int, 200),
-              ('hoeoutdistance', float, 0.1),  # hoeoutdistance m
-              ('hoeindistance', float, 0.1),  # hoeindistance m
+              ('hoeoutdistance', float, 0.1),    # hoeoutdistance m
+              ('hoeindistance', float, 0.1),     # hoeindistance m
               ('hoefirstdistance', float, 1.0),  # hoefirstdistance m
-              ('hoemaxdistance', float, 1.25),  # hoemaxdistance m
-              ('mode', int, 2),              # mode: 1=seed, 2=seed and collect data, 3=chop weeds
+              ('hoemaxdistance', float, 1.25),   # hoemaxdistance m
+              ('mode', int, 2),                  # mode: 1=seed, 2=seed and collect data, 3=chop weeds
+              ('seedfile', str, '/home/mirko/data/webaro/seed.txt'),
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set','seed'])
         
-        self.seedfile = '/home/mirko/data/webaro/seed.txt'
         self.simstate = 0
         self.hoestatus = HOE.HOE_INIT
         self.seed_index = 1
@@ -56,7 +56,7 @@ class ethtrigger(mp_module.MPModule):
 
     def usage(self):
         '''show help on command line options'''
-        return "Usage: ethtrigger <status|set verbose|set steps>"
+        return "Usage: ethtrigger <status|set verbose|set steps|set hoeoutdistance|set hoeindistance|set hoefirstdistance|set hoemaxdistance|set mode|set seedfile>"
 
     def cmd_ethtrigger(self, args):
         '''control behaviour of the module'''
@@ -79,11 +79,11 @@ class ethtrigger(mp_module.MPModule):
         if cmd[0] == 'clear':
             self.seeds = {}
         if cmd[0] == 'read':
-            with open(self.seedfile) as json_file:
+            with open(self.ethtrigger_settings.seedfile) as json_file:
                 self.seeds = json.load(json_file)
                 self.seed_position = self.get_position(self.seed_index)
         if cmd[0] == 'write':
-            with open(self.seedfile, 'w') as json_file:
+            with open(self.ethtrigger_settings.seedfile, 'w') as json_file:
                 json.dump(self.seeds, json_file)
         if cmd[0] == 'dump':
             print(json.dumps(self.seeds, indent=4))
