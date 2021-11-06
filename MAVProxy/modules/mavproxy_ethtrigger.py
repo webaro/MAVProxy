@@ -38,6 +38,7 @@ class ethtrigger(mp_module.MPModule):
         self.ethtrigger_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('steps', int, 200),
+              ('stepshoe', int, 400),
               ('hoeoutdistance', float, 0.1),    # hoeoutdistance m
               ('hoeindistance', float, 0.1),     # hoeindistance m
               ('hoefirstdistance', float, 1.0),  # hoefirstdistance m
@@ -56,7 +57,7 @@ class ethtrigger(mp_module.MPModule):
 
     def usage(self):
         '''show help on command line options'''
-        return "Usage: ethtrigger <status|set verbose|set steps|set hoeoutdistance|set hoeindistance|set hoefirstdistance|set hoemaxdistance|set mode|set seedfile>"
+        return "Usage: ethtrigger <status|set verbose|set steps|set stepshoe|set hoeoutdistance|set hoeindistance|set hoefirstdistance|set hoemaxdistance|set mode|set seedfile>"
 
     def cmd_ethtrigger(self, args):
         '''control behaviour of the module'''
@@ -75,6 +76,25 @@ class ethtrigger(mp_module.MPModule):
         '''returns information about module'''
         return("steps: " + str(self.ethtrigger_settings.steps))
 
+    def send_seeder(self, msg):
+        # send only in none SITL
+        if self.simstate == 0:
+            MESSAGE = msg
+            try:
+                self.s.send(MESSAGE.encode())
+            except:
+                # recreate the socket and reconnect
+                self.s.close()
+                self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s.settimeout(1)
+                self.s.connect((TCP_IP, TCP_PORT))
+                self.s.settimeout(None)
+                self.s.send(MESSAGE.encode())
+
+    def move_hoe(self):
+        message = "yt" + str(self.ethtrigger_settings.stepshoe) + "\r"
+        self.send_seeder(message)
+
     def seed_command(self, cmd):
         if cmd[0] == 'clear':
             self.seeds = {}
@@ -87,6 +107,9 @@ class ethtrigger(mp_module.MPModule):
                 json.dump(self.seeds, json_file)
         if cmd[0] == 'dump':
             print(json.dumps(self.seeds, indent=4))
+        if cmd[0] == 'reset':
+            self.hoestatus = HOE.HOE_INIT
+            self.seed_index = 1
 
         print("seed: " + cmd[0])
 
@@ -115,6 +138,7 @@ class ethtrigger(mp_module.MPModule):
                     if distance < self.ethtrigger_settings.hoefirstdistance:
                         self.hoestatus = HOE.HOE_OUT
                         print("hoeinit: " + str(distance) + " m")
+                        self.move_hoe()
                         self.hoestatus = HOE.HOE_OUT
                 elif self.hoestatus == HOE.HOE_IN:
                     if distance > self.ethtrigger_settings.hoemaxdistance:
@@ -125,6 +149,7 @@ class ethtrigger(mp_module.MPModule):
                             self.seed_index += 1
                             self.seed_position = self.get_position(self.seed_index)
                             print("hoeout: " + str(distance) + " m")
+                            self.move_hoe()
                         else:
                             self.hoestatus = HOE.HOE_FINISH
                             print("hoefinish: " + str(distance) + " m")
@@ -135,6 +160,7 @@ class ethtrigger(mp_module.MPModule):
                     elif distance < self.ethtrigger_settings.hoeindistance:
                         self.hoestatus = HOE.HOE_IN
                         print("hoein: " + str(distance) + " m")
+                        self.move_hoe()
 
         if m.get_type() == 'CAMERA_FEEDBACK':
             if self.ethtrigger_settings.mode < 3:
@@ -156,17 +182,8 @@ class ethtrigger(mp_module.MPModule):
 
                 # send only in none SITL
                 if self.simstate == 0:
-                    MESSAGE = "xt" + str(self.ethtrigger_settings.steps) + "\r"
-                    try:
-                        self.s.send(MESSAGE.encode())
-                    except:
-                        # recreate the socket and reconnect
-                        self.s.close()
-                        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        self.s.settimeout(1)
-                        self.s.connect((TCP_IP, TCP_PORT))
-                        self.s.settimeout(None)
-                        self.s.send(MESSAGE.encode())
+                    message = "xt" + str(self.ethtrigger_settings.steps) + "\r"
+                    self.send_seeder(message)
 
             if self.ethtrigger_settings.verbose:
                 print("CAMERA_FEEDBACK")
