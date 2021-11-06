@@ -46,6 +46,7 @@ class ethtrigger(mp_module.MPModule):
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set','seed'])
         
+        self.seedfile = '/home/mirko/data/webaro/seed.txt'
         self.simstate = 0
         self.hoestatus = HOE.HOE_INIT
         self.seed_index = 1
@@ -78,11 +79,11 @@ class ethtrigger(mp_module.MPModule):
         if cmd[0] == 'clear':
             self.seeds = {}
         if cmd[0] == 'read':
-            with open('/home/mirko/data/webaro/seed.txt') as json_file:
+            with open(self.seedfile) as json_file:
                 self.seeds = json.load(json_file)
                 self.seed_position = self.get_position(self.seed_index)
         if cmd[0] == 'write':
-            with open('/home/mirko/data/webaro/seed.txt', 'w') as json_file:
+            with open(self.seedfile, 'w') as json_file:
                 json.dump(self.seeds, json_file)
         if cmd[0] == 'dump':
             print(json.dumps(self.seeds, indent=4))
@@ -153,7 +154,7 @@ class ethtrigger(mp_module.MPModule):
                     })
                     #print(json.dumps(self.seeds, indent=4))
 
-                # not send in SITL
+                # send only in none SITL
                 if self.simstate == 0:
                     MESSAGE = "xt" + str(self.ethtrigger_settings.steps) + "\r"
                     try:
