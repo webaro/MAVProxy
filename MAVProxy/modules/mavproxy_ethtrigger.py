@@ -41,19 +41,20 @@ class ethtrigger(mp_module.MPModule):
               ('stepshoe', int, 400),
               ('hoeoutdistance', float, 0.1),    # hoeoutdistance m
               ('hoeindistance', float, 0.1),     # hoeindistance m
-              ('hoefirstdistance', float, 1.0),  # hoefirstdistance m
-              ('hoemaxdistance', float, 1.25),   # hoemaxdistance m
+              ('hoefirstdistance', float, 2.0),  # hoefirstdistance m
+              ('hoemaxdistance', float, 2.25),   # hoemaxdistance m
               ('mode', int, 2),                  # mode: 1=seed, 2=seed and collect data, 3=chop weeds
-              ('seedfile', str, '/home/mirko/data/webaro/seed.txt'),
+              ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set','seed'])
-        
+
         self.simstate = 0
         self.hoestatus = HOE.HOE_INIT
         self.seed_index = 1
         self.seed_position = None
         self.seeds = {}
         self.seeds['seeds'] = []
+        self.outindex = 0
 
     def usage(self):
         '''show help on command line options'''
@@ -95,6 +96,10 @@ class ethtrigger(mp_module.MPModule):
         message = "yt" + str(self.ethtrigger_settings.stepshoe) + "\r"
         self.send_seeder(message)
 
+    def home_hoe(self):
+        message = "yh\r"
+        self.send_seeder(message)
+
     def seed_command(self, cmd):
         if cmd[0] == 'clear':
             self.seeds = {}
@@ -110,6 +115,10 @@ class ethtrigger(mp_module.MPModule):
         if cmd[0] == 'reset':
             self.hoestatus = HOE.HOE_INIT
             self.seed_index = 1
+        if cmd[0] == 'home':
+            self.home_hoe()
+        if cmd[0] == 'hoe':
+            self.move_hoe()
 
         print("seed: " + cmd[0])
 
@@ -130,20 +139,20 @@ class ethtrigger(mp_module.MPModule):
 
         if m.get_type() == 'SIMSTATE':
             self.simstate = 1
-        
+
         if self.ethtrigger_settings.mode == 3:
-            if m.get_type() == 'AHRS2':
-                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lng * 1e-7)
+            if m.get_type() == 'GLOBAL_POSITION_INT':
+                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lon * 1e-7)
                 if self.hoestatus == HOE.HOE_INIT:
                     if distance < self.ethtrigger_settings.hoefirstdistance:
                         self.hoestatus = HOE.HOE_OUT
                         print("hoeinit: " + str(distance) + " m")
                         self.move_hoe()
-                        self.hoestatus = HOE.HOE_OUT
                 elif self.hoestatus == HOE.HOE_IN:
                     if distance > self.ethtrigger_settings.hoemaxdistance:
                         self.hoestatus = HOE.HOE_ERROR
                     elif distance > self.ethtrigger_settings.hoeoutdistance:
+                        # save seed end ?
                         if self.get_position(self.seed_index + 1) != None:
                             self.hoestatus = HOE.HOE_OUT
                             self.seed_index += 1
@@ -157,6 +166,7 @@ class ethtrigger(mp_module.MPModule):
                     if distance > self.ethtrigger_settings.hoemaxdistance:
                         self.hoestatus = HOE.HOE_ERROR
                         print("ERROR hoein: " + str(distance) + " m")
+                    # save seed !
                     elif distance < self.ethtrigger_settings.hoeindistance:
                         self.hoestatus = HOE.HOE_IN
                         print("hoein: " + str(distance) + " m")
@@ -169,7 +179,7 @@ class ethtrigger(mp_module.MPModule):
                     index = m.img_idx
                     lat = m.lat * 1e-7
                     lng = m.lng * 1e-7
-                    
+
                     print("Lat: " + str(lat) + "  Lon: " + str(lng) + "  Index: " + str(index))
 
                     self.seeds['seeds'].append({
