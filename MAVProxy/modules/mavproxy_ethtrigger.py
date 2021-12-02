@@ -39,8 +39,8 @@ class ethtrigger(mp_module.MPModule):
             [ ('verbose', bool, False),
               ('steps', int, 200),
               ('stepshoe', int, 400),
-              ('hoeoutdistance', float, 0.1),    # hoeoutdistance m
-              ('hoeindistance', float, 0.1),     # hoeindistance m
+              ('hoeoutdistance', float, 0.05),   # hoeoutdistance m
+              ('hoeindistance', float, 0.15),    # hoeindistance m
               ('hoefirstdistance', float, 2.0),  # hoefirstdistance m
               ('hoemaxdistance', float, 2.25),   # hoemaxdistance m
               ('mode', int, 2),                  # mode: 1=seed, 2=seed and collect data, 3=chop weeds
@@ -55,6 +55,8 @@ class ethtrigger(mp_module.MPModule):
         self.seeds = {}
         self.seeds['seeds'] = []
         self.outindex = 0
+        self.hoein_position_lat = 0.0
+        self.hoein_position_lng = 0.0
 
     def usage(self):
         '''show help on command line options'''
@@ -115,6 +117,7 @@ class ethtrigger(mp_module.MPModule):
         if cmd[0] == 'reset':
             self.hoestatus = HOE.HOE_INIT
             self.seed_index = 1
+            self.seed_position = self.get_position(self.seed_index)
         if cmd[0] == 'home':
             self.home_hoe()
         if cmd[0] == 'hoe':
@@ -146,18 +149,21 @@ class ethtrigger(mp_module.MPModule):
                 if self.hoestatus == HOE.HOE_INIT:
                     if distance < self.ethtrigger_settings.hoefirstdistance:
                         self.hoestatus = HOE.HOE_OUT
-                        print("hoeinit: " + str(distance) + " m")
+                        print("(hoe) hoeinit: " + str(distance) + " m")
                         self.move_hoe()
                 elif self.hoestatus == HOE.HOE_IN:
                     if distance > self.ethtrigger_settings.hoemaxdistance:
                         self.hoestatus = HOE.HOE_ERROR
+                    elif mp_util.gps_distance(self.hoein_position_lat, self.hoein_position_lng, m.lat * 1e-7, m.lon * 1e-7) < self.ethtrigger_settings.hoeindistance:
+                        # wait until we pass seed
+                        return
                     elif distance > self.ethtrigger_settings.hoeoutdistance:
                         # save seed end ?
                         if self.get_position(self.seed_index + 1) != None:
                             self.hoestatus = HOE.HOE_OUT
                             self.seed_index += 1
                             self.seed_position = self.get_position(self.seed_index)
-                            print("hoeout: " + str(distance) + " m")
+                            print("(hoe) hoeout: " + str(distance) + " m")
                             self.move_hoe()
                         else:
                             self.hoestatus = HOE.HOE_FINISH
@@ -169,8 +175,10 @@ class ethtrigger(mp_module.MPModule):
                     # save seed !
                     elif distance < self.ethtrigger_settings.hoeindistance:
                         self.hoestatus = HOE.HOE_IN
-                        print("hoein: " + str(distance) + " m")
+                        print("(save seed) hoein: " + str(distance) + " m")
                         self.move_hoe()
+                        self.hoein_position_lat = m.lat * 1e-7
+                        self.hoein_position_lng = m.lon * 1e-7
 
         if m.get_type() == 'CAMERA_FEEDBACK':
             if self.ethtrigger_settings.mode < 3:
