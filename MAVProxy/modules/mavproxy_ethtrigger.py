@@ -6,6 +6,9 @@ import sys
 import json
 import socket
 
+import numpy as np
+import nvector as nv
+
 from pymavlink import mavutil
 
 from MAVProxy.modules.lib import mp_module
@@ -55,8 +58,7 @@ class ethtrigger(mp_module.MPModule):
         self.seeds = {}
         self.seeds['seeds'] = []
         self.outindex = 0
-        self.hoein_position_lat = 0.0
-        self.hoein_position_lng = 0.0
+        self.passed = False
 
     def usage(self):
         '''show help on command line options'''
@@ -145,7 +147,30 @@ class ethtrigger(mp_module.MPModule):
 
         if self.ethtrigger_settings.mode == 3:
             if m.get_type() == 'GLOBAL_POSITION_INT':
-                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lon * 1e-7)
+#                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lon * 1e-7)
+
+                wgs84 = nv.FrameE(name='WGS84')
+                positionA = wgs84.GeoPoint(latitude=(m.lat * 1e-7), longitude=(m.lon * 1e-7), degrees=True)
+                positionB, azB = positionA.displace(1, (m.hdg / 100.0), degrees=True)
+                positionC = wgs84.GeoPoint(latitude=self.seed_position['lat'], longitude=self.seed_position['lng'], degrees=True)
+                s_AB, _azia, _azib = positionA.distance_and_azimuth(positionB)
+
+                n_EA1_E = nv.lat_lon2n_E(positionA.latitude, positionA.longitude)
+                n_EA2_E = nv.lat_lon2n_E(positionB.latitude, positionB.longitude)
+                n_EB_E = nv.lat_lon2n_E(positionC.latitude, positionC.longitude)
+                path = (n_EA1_E, n_EA2_E)
+                s_xt = nv.cross_track_distance(path, n_EB_E)
+ #               print("Crosstrack " + str(s_xt[0]))
+
+                n_EC_E = nv.closest_point_on_great_circle(path, n_EB_E)
+                if abs((nv.deg(nv.n_EA_E_and_n_EB_E2azimuth(n_EA1_E, n_EC_E)-_azia))) > 10.0:
+                    self.passed = True
+                else:
+                    self.passed = False
+                distance = nv.great_circle_distance(n_EA1_E, n_EC_E)[0]
+  #              print("Entfernung: " + str(distance))
+
+
                 if self.hoestatus == HOE.HOE_INIT:
                     if distance < self.ethtrigger_settings.hoefirstdistance:
                         self.hoestatus = HOE.HOE_OUT
@@ -153,10 +178,23 @@ class ethtrigger(mp_module.MPModule):
                         self.move_hoe()
                 elif self.hoestatus == HOE.HOE_IN:
                     if distance > self.ethtrigger_settings.hoemaxdistance:
+                        # we missed the seed
                         self.hoestatus = HOE.HOE_ERROR
-                    elif mp_util.gps_distance(self.hoein_position_lat, self.hoein_position_lng, m.lat * 1e-7, m.lon * 1e-7) < self.ethtrigger_settings.hoeindistance:
-                        # wait until we pass seed
-                        return
+                    elif self.passed == False:
+                        # we not passed the seed now
+                        if self.ethtrigger_settings.hoeoutdistance < 0.0:
+                            if distance < -self.ethtrigger_settings.hoeoutdistance:
+                                # save seed end ?
+                                if self.get_position(self.seed_index + 1) != None:
+                                    self.hoestatus = HOE.HOE_OUT
+                                    self.seed_index += 1
+                                    self.seed_position = self.get_position(self.seed_index)
+                                    print("(hoe) hoeout: " + str(-distance) + " m")
+                                    print("Crosstrack " + str(s_xt[0]) + " m")
+                                    self.move_hoe()
+                                else:
+                                    self.hoestatus = HOE.HOE_FINISH
+                                    print("hoefinish: " + str(distance) + " m")
                     elif distance > self.ethtrigger_settings.hoeoutdistance:
                         # save seed end ?
                         if self.get_position(self.seed_index + 1) != None:
@@ -164,6 +202,7 @@ class ethtrigger(mp_module.MPModule):
                             self.seed_index += 1
                             self.seed_position = self.get_position(self.seed_index)
                             print("(hoe) hoeout: " + str(distance) + " m")
+                            print("Crosstrack " + str(s_xt[0]) + " m")
                             self.move_hoe()
                         else:
                             self.hoestatus = HOE.HOE_FINISH
@@ -176,9 +215,8 @@ class ethtrigger(mp_module.MPModule):
                     elif distance < self.ethtrigger_settings.hoeindistance:
                         self.hoestatus = HOE.HOE_IN
                         print("(save seed) hoein: " + str(distance) + " m")
+                        print("Crosstrack " + str(s_xt[0]) + " m")
                         self.move_hoe()
-                        self.hoein_position_lat = m.lat * 1e-7
-                        self.hoein_position_lng = m.lon * 1e-7
 
         if m.get_type() == 'CAMERA_FEEDBACK':
             if self.ethtrigger_settings.mode < 3:
