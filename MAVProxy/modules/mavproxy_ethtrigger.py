@@ -42,8 +42,8 @@ class ethtrigger(mp_module.MPModule):
             [ ('verbose', bool, False),
               ('steps', int, 200),
               ('stepshoe', int, 400),
-              ('hoeoutdistance', float, 0.05),   # hoeoutdistance m
-              ('hoeindistance', float, 0.15),    # hoeindistance m
+              ('hoeoutdistance', float, 0.01),   # hoeoutdistance m
+              ('hoeindistance', float, 0.18),    # hoeindistance m
               ('hoefirstdistance', float, 2.0),  # hoefirstdistance m
               ('hoemaxdistance', float, 2.25),   # hoemaxdistance m
               ('mode', int, 2),                  # mode: 1=seed, 2=seed and collect data, 3=chop weeds
