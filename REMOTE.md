@@ -31,6 +31,8 @@
 | ethtrigger set stepshoe | Gibt die Anzahl der Motorschritte für die Hacke zurück |
 | ethtrigger set mode 1 | Setzt den Betriebmode des Feldroboters auf 1 |
 | ethtrigger set mode | Gibt den aktullen Betriebmode des Feldroboters zurück |
+| ethtrigger set seedfile /home/pi/data/webaro/seed.txt | Setzt die Datendatei auf /home/pi/data/webaro/seed.txt |
+| ethtrigger set seedfile | Gibt die aktuelle Datendatei zurück |
 | ethtrigger seed home | Fährt die Hacke in die Home Position |
 | ethtrigger seed hoe | Fährt die Hacke in die nächste Position |
 
