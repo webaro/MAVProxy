@@ -29,5 +29,15 @@
 | ethtrigger set steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
 | ethtrigger set stepshoe | Setzt die Anzahl der Motorschritte für die Hacke |
 | ethtrigger set stepshoe | Gibt die Anzahl der Motorschritte für die Hacke zurück |
+| ethtrigger set mode 1 | Setzt den Betriebmode des Feldroboters auf 1 |
+| ethtrigger set mode | Gibt den aktullen Betriebmode des Feldroboters zurück |
 | ethtrigger seed home | Fährt die Hacke in die Home Position |
 | ethtrigger seed hoe | Fährt die Hacke in die nächste Position |
+
+### Betriebsmode
+
+| Betriebsmode | Beschreibung |
+| ------ | ------------ |
+| 1 | Sähnen, keine Datenaufnahme |
+| 2 | Sähnen, Positionen der Pflanzen werden aufgenommen |
+| 3 | Hacken |
