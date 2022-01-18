@@ -19,6 +19,8 @@
 
 ## FELDROBOTER
 
+![](docs/seedhoe.drawio.png)
+
 | Befehl | Beschreibung |
 | ------ | ------------ |
 | ethtrigger set hoeindistance 0.1 | Setzt die Entfernung auf 0.1 Meter vor dem die Hacke vor der Pflanze eingefahren wird |
