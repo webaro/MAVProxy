@@ -21,3 +21,13 @@
 
 | Befehl | Beschreibung |
 | ------ | ------------ |
+| ethtrigger set hoeindistance 0.1 | Setzt die Entfernung auf 0.1 Meter vor dem die Hacke vor der Pflanze eingefahren wird |
+| ethtrigger set hoeindistance | Gibt die hoeindistance zurück |
+| ethtrigger set hoeoutdistance 0.03 | Setzt die Entfernung auf Meter 0.03 Meter nachdem die Hacke nach der Pflanze ausgefahren wird | 
+| ethtrigger set hoeoutdistance | Gibt die hoeoutdistance zurück |
+| ethtrigger set steps | Setzt die Anzahl der Motorschritte für die Sähmaschine |
+| ethtrigger set steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
+| ethtrigger set stepshoe | Setzt die Anzahl der Motorschritte für die Hacke |
+| ethtrigger set stepshoe | Gibt die Anzahl der Motorschritte für die Hacke zurück |
+| ethtrigger seed home | Fährt die Hacke in die Home Position |
+| ethtrigger seed hoe | Fährt die Hacke in die nächste Position |
