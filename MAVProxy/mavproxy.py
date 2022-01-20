@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -u
 '''
 mavproxy - a MAVLink proxy program
 
