@@ -47,6 +47,7 @@
 
 | Betriebsmode | Beschreibung |
 | ------ | ------------ |
+| 0 | Kein Sähnen und kein Hacken |
 | 1 | Sähnen, keine Datenaufnahme |
 | 2 | Sähnen, Positionen der Pflanzen werden aufgenommen |
 | 3 | Hacken |

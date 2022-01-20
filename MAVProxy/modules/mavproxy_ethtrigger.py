@@ -135,6 +135,10 @@ class ethtrigger(mp_module.MPModule):
 
     def mavlink_packet(self, m):
         '''handle mavlink packets'''
+        # do nothing if mode = 0
+        if self.ethtrigger_settings.mode == 0:
+            return
+
         if m.get_type() == "COMMAND_LONG":
             print ("Get Long")
             if m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONFIGURE:
