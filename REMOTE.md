@@ -29,10 +29,10 @@
 | tool set hoe_outdistance | Gibt die hoeoutdistance zurück |
 | tool set hoe_maxdistance 2.1 | Setzt die maximale Entfernung auf 2.1 Meter zu einer Pflanze, wird diese Entfernung überschritten, dann geht der Betriebsmode 3 in Störung (wenn man an einer Pflanze vorbei fährt) |
 | tool set hoe_maxdistance | Gibt die hoemaxdistance zurück |
-| tool set seeder_steps 200 | Setzt die Anzahl der Motorschritte für die Sähmaschine auf 200 |
-| tool set seeder_steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
 | tool set hoe_steps 200 | Setzt die Anzahl der Motorschritte für die Hacke auf 200 |
 | tool set hoe_steps | Gibt die Anzahl der Motorschritte für die Hacke zurück |
+| tool set seeder_steps 200 | Setzt die Anzahl der Motorschritte für die Sähmaschine auf 200 |
+| tool set seeder_steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
 | tool set mode 1 | Setzt den Betriebmode des Feldroboters auf 1 |
 | tool set mode | Gibt den aktuelle Betriebmode des Feldroboters zurück |
 | tool set seedfile /home/pi/data/webaro/seed.txt | Setzt die Datendatei auf /home/pi/data/webaro/seed.txt |
