@@ -40,12 +40,12 @@ class tool(mp_module.MPModule):
 
         self.tool_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
-              ('steps', int, 200),
-              ('stepshoe', int, 400),
-              ('hoeoutdistance', float, 0.01),   # hoeoutdistance m
-              ('hoeindistance', float, 0.18),    # hoeindistance m
-              ('hoefirstdistance', float, 2.0),  # hoefirstdistance m
-              ('hoemaxdistance', float, 2.25),   # hoemaxdistance m
+              ('seeder_steps', int, 200),
+              ('hoe_steps', int, 400),
+              ('hoe_outdistance', float, 0.01),   # hoeoutdistance m
+              ('hoe_indistance', float, 0.18),    # hoeindistance m
+              ('hoe_firstdistance', float, 2.0),  # hoefirstdistance m
+              ('hoe_maxdistance', float, 2.25),   # hoemaxdistance m
               ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])

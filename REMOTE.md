@@ -23,16 +23,16 @@
 
 | Befehl | Beschreibung |
 | ------ | ------------ |
-| tool set hoeindistance 0.1 | Setzt die Entfernung auf 0.1 Meter vor dem die Hacke vor der Pflanze eingefahren wird |
-| tool set hoeindistance | Gibt die hoeindistance zurück |
-| tool set hoeoutdistance 0.03 | Setzt die Entfernung auf Meter 0.03 Meter nachdem die Hacke nach der Pflanze ausgefahren wird | 
-| tool set hoeoutdistance | Gibt die hoeoutdistance zurück |
-| tool set hoemaxdistance 2.1 | Setzt die maximale Entfernung auf 2.1 Meter zu einer Pflanze, wird diese Entfernung überschritten, dann geht der Betriebsmode 3 in Störung (wenn man an einer Pflanze vorbei fährt) |
-| tool set hoemaxdistance | Gibt die hoemaxdistance zurück |
-| tool set steps | Setzt die Anzahl der Motorschritte für die Sähmaschine |
-| tool set steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
-| tool set stepshoe | Setzt die Anzahl der Motorschritte für die Hacke |
-| tool set stepshoe | Gibt die Anzahl der Motorschritte für die Hacke zurück |
+| tool set hoe_indistance 0.1 | Setzt die Entfernung auf 0.1 Meter vor dem die Hacke vor der Pflanze eingefahren wird |
+| tool set hoe_indistance | Gibt die hoeindistance zurück |
+| tool set hoe_outdistance 0.03 | Setzt die Entfernung auf Meter 0.03 Meter nachdem die Hacke nach der Pflanze ausgefahren wird | 
+| tool set hoe_outdistance | Gibt die hoeoutdistance zurück |
+| tool set hoe_maxdistance 2.1 | Setzt die maximale Entfernung auf 2.1 Meter zu einer Pflanze, wird diese Entfernung überschritten, dann geht der Betriebsmode 3 in Störung (wenn man an einer Pflanze vorbei fährt) |
+| tool set hoe_maxdistance | Gibt die hoemaxdistance zurück |
+| tool set seeder_steps 200 | Setzt die Anzahl der Motorschritte für die Sähmaschine auf 200 |
+| tool set seeder_steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
+| tool set hoe_steps 200 | Setzt die Anzahl der Motorschritte für die Hacke auf 200 |
+| tool set hoe_steps | Gibt die Anzahl der Motorschritte für die Hacke zurück |
 | tool set mode 1 | Setzt den Betriebmode des Feldroboters auf 1 |
 | tool set mode | Gibt den aktuelle Betriebmode des Feldroboters zurück |
 | tool set seedfile /home/pi/data/webaro/seed.txt | Setzt die Datendatei auf /home/pi/data/webaro/seed.txt |
