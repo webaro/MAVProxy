@@ -104,6 +104,14 @@ class ethtrigger(mp_module.MPModule):
         message = "yh\r"
         self.send_seeder(message)
 
+    def move_seed(self):
+        message = "xt" + str(self.ethtrigger_settings.steps) + "\r"
+        self.send_seeder(message)
+
+    def home_seed(self):
+        message = "xh\r"
+        self.send_seeder(message)
+
     def seed_command(self, cmd):
         if cmd[0] == 'clear':
             self.seeds = {}
@@ -242,8 +250,7 @@ class ethtrigger(mp_module.MPModule):
 
                 # send only in none SITL
                 if self.simstate == 0:
-                    message = "xt" + str(self.ethtrigger_settings.steps) + "\r"
-                    self.send_seeder(message)
+                    self.move_seed()
 
             if self.ethtrigger_settings.verbose:
                 print("CAMERA_FEEDBACK")
