@@ -46,7 +46,7 @@ class ethtrigger(mp_module.MPModule):
               ('hoeindistance', float, 0.18),    # hoeindistance m
               ('hoefirstdistance', float, 2.0),  # hoefirstdistance m
               ('hoemaxdistance', float, 2.25),   # hoemaxdistance m
-              ('mode', int, 2),                  # mode: 1=seed, 2=seed and collect data, 3=chop weeds
+              ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
         self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set','seed'])
@@ -128,9 +128,13 @@ class ethtrigger(mp_module.MPModule):
             self.hoestatus = HOE.HOE_INIT
             self.seed_index = 1
             self.seed_position = self.get_position(self.seed_index)
-        if cmd[0] == 'home':
+        if cmd[0] == 'hoe_home':
             self.home_hoe()
-        if cmd[0] == 'hoe':
+        if cmd[0] == 'hoe_move':
+            self.move_hoe()
+        if cmd[0] == 'seed_home':
+            self.home_hoe()
+        if cmd[0] == 'seed_move':
             self.move_hoe()
 
         print("seed: " + cmd[0])

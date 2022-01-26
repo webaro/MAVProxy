@@ -37,8 +37,10 @@
 | ethtrigger set mode | Gibt den aktuelle Betriebmode des Feldroboters zurück |
 | ethtrigger set seedfile /home/pi/data/webaro/seed.txt | Setzt die Datendatei auf /home/pi/data/webaro/seed.txt |
 | ethtrigger set seedfile | Gibt die aktuelle Datendatei zurück |
-| ethtrigger seed home | Fährt die Hacke in die Home Position |
-| ethtrigger seed hoe | Fährt die Hacke in die nächste Position |
+| ethtrigger seed hoe_home | Fährt die Hacke in die Home Position |
+| ethtrigger seed hoe_move | Fährt die Hacke in die nächste Position |
+| ethtrigger seed seed_home | Fährt die Sämaschine in die Home Position |
+| ethtrigger seed seed_move | Aktiviert die Sämaschine Auswurf ein Saatkorn |
 | ethtrigger seed read | Liest Daten aus der Datendatei ein |
 | ethtrigger seed write | Schreibt Daten in Datendatei |
 | ethtrigger seed reset | Setzt den Betriebsmode 3 zurück |
