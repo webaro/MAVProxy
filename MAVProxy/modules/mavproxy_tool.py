@@ -122,12 +122,6 @@ class tool(mp_module.MPModule):
         message = "xh\r"
         self.send_seeder(message)
 
-    def hoe_command(self, cmd):
-        if cmd[0] == 'home':
-            self.home_hoe()
-        if cmd[0] == 'move':
-            self.move_hoe()
-
     def read_command(self, cmd):
         with open(self.tool_settings.seedfile) as json_file:
             self.seeds = json.load(json_file)
@@ -145,26 +139,19 @@ class tool(mp_module.MPModule):
     def clear_command(self, cmd):
         self.hoestatus = HOE.HOE_INIT
 
-    def seeder_command(self, cmd):
-        if cmd[0] == 'clear':
-            self.seeds = {}
-        if cmd[0] == 'read':
-            with open(self.tool_settings.seedfile) as json_file:
-                self.seeds = json.load(json_file)
-                self.seed_position = self.get_position(self.seed_index)
-        if cmd[0] == 'write':
-            with open(self.tool_settings.seedfile, 'w') as json_file:
-                json.dump(self.seeds, json_file)
-        if cmd[0] == 'dump':
-            print(json.dumps(self.seeds, indent=4))
-        if cmd[0] == 'reset':
-            self.hoestatus = HOE.HOE_INIT
-            self.seed_index = 1
-            self.seed_position = self.get_position(self.seed_index)
+    def hoe_command(self, cmd):
         if cmd[0] == 'home':
             self.home_hoe()
         if cmd[0] == 'move':
             self.move_hoe()
+
+    def seeder_command(self, cmd):
+        if cmd[0] == 'home':
+            self.home_hoe()
+        if cmd[0] == 'move':
+            self.move_hoe()
+        if cmd[0] == 'dump':
+            print(json.dumps(self.seeds, indent=4))
 
         print("seed: " + cmd[0])
 
