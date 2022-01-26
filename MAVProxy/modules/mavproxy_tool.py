@@ -25,10 +25,10 @@ class HOE:
     HOE_FINISH = 4
     HOE_ERROR = 5
 
-class ethtrigger(mp_module.MPModule):
+class tool(mp_module.MPModule):
     def __init__(self, mpstate):
         """Initialise module"""
-        super(ethtrigger, self).__init__(mpstate, "ethtrigger", "")
+        super(tool, self).__init__(mpstate, "tool", "")
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -38,7 +38,7 @@ class ethtrigger(mp_module.MPModule):
         except:
             pass
 
-        self.ethtrigger_settings = mp_settings.MPSettings(
+        self.tool_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('steps', int, 200),
               ('stepshoe', int, 400),
@@ -49,7 +49,7 @@ class ethtrigger(mp_module.MPModule):
               ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
-        self.add_command('ethtrigger', self.cmd_ethtrigger, "ethtrigger module", ['status','set','seed'])
+        self.add_command('tool', self.cmd_tool, "tool module", ['status','set','seed'])
 
         self.simstate = 0
         self.hoestatus = HOE.HOE_INIT
@@ -62,24 +62,34 @@ class ethtrigger(mp_module.MPModule):
 
     def usage(self):
         '''show help on command line options'''
-        return "Usage: ethtrigger <status|set verbose|set steps|set stepshoe|set hoeoutdistance|set hoeindistance|set hoefirstdistance|set hoemaxdistance|set mode|set seedfile>"
+        return "Usage: tool <status|set verbose|set steps|set stepshoe|set hoeoutdistance|set hoeindistance|set hoefirstdistance|set hoemaxdistance|set mode|set seedfile>"
 
-    def cmd_ethtrigger(self, args):
+    def cmd_tool(self, args):
         '''control behaviour of the module'''
         if len(args) == 0:
             print(self.usage())
         elif args[0] == "status":
             print(self.status())
         elif args[0] == "set":
-            self.ethtrigger_settings.command(args[1:])
-        elif args[0] == "seed":
-            self.seed_command(args[1:])
+            self.tool_settings.command(args[1:])
+        elif args[0] == "hoe":
+            self.hoe_command(args[1:])
+        elif args[0] == "seeder":
+            self.seeder_command(args[1:])
+        elif args[0] == "read":
+            self.read_command(args[1:])
+        elif args[0] == "write":
+            self.write_command(args[1:])
+        elif args[0] == "reset":
+            self.reset_command(args[1:])
+        elif args[0] == "reset":
+            self.clear_command(args[1:])
         else:
             print(self.usage())
 
     def status(self):
         '''returns information about module'''
-        return("steps: " + str(self.ethtrigger_settings.steps))
+        return("steps: " + str(self.tool_settings.steps))
 
     def send_seeder(self, msg):
         # send only in none SITL
@@ -97,7 +107,7 @@ class ethtrigger(mp_module.MPModule):
                 self.s.send(MESSAGE.encode())
 
     def move_hoe(self):
-        message = "yt" + str(self.ethtrigger_settings.stepshoe) + "\r"
+        message = "yt" + str(self.tool_settings.stepshoe) + "\r"
         self.send_seeder(message)
 
     def home_hoe(self):
@@ -105,22 +115,45 @@ class ethtrigger(mp_module.MPModule):
         self.send_seeder(message)
 
     def move_seed(self):
-        message = "xt" + str(self.ethtrigger_settings.steps) + "\r"
+        message = "xt" + str(self.tool_settings.steps) + "\r"
         self.send_seeder(message)
 
     def home_seed(self):
         message = "xh\r"
         self.send_seeder(message)
 
-    def seed_command(self, cmd):
+    def hoe_command(self, cmd):
+        if cmd[0] == 'home':
+            self.home_hoe()
+        if cmd[0] == 'move':
+            self.move_hoe()
+
+    def read_command(self, cmd):
+        with open(self.tool_settings.seedfile) as json_file:
+            self.seeds = json.load(json_file)
+            self.seed_position = self.get_position(self.seed_index)
+
+    def write_command(self, cmd):
+        with open(self.tool_settings.seedfile, 'w') as json_file:
+            json.dump(self.seeds, json_file)
+
+    def reset_command(self, cmd):
+        self.hoestatus = HOE.HOE_INIT
+        self.seed_index = 1
+        self.seed_position = self.get_position(self.seed_index)
+
+    def clear_command(self, cmd):
+        self.hoestatus = HOE.HOE_INIT
+
+    def seeder_command(self, cmd):
         if cmd[0] == 'clear':
             self.seeds = {}
         if cmd[0] == 'read':
-            with open(self.ethtrigger_settings.seedfile) as json_file:
+            with open(self.tool_settings.seedfile) as json_file:
                 self.seeds = json.load(json_file)
                 self.seed_position = self.get_position(self.seed_index)
         if cmd[0] == 'write':
-            with open(self.ethtrigger_settings.seedfile, 'w') as json_file:
+            with open(self.tool_settings.seedfile, 'w') as json_file:
                 json.dump(self.seeds, json_file)
         if cmd[0] == 'dump':
             print(json.dumps(self.seeds, indent=4))
@@ -128,13 +161,9 @@ class ethtrigger(mp_module.MPModule):
             self.hoestatus = HOE.HOE_INIT
             self.seed_index = 1
             self.seed_position = self.get_position(self.seed_index)
-        if cmd[0] == 'hoe_home':
+        if cmd[0] == 'home':
             self.home_hoe()
-        if cmd[0] == 'hoe_move':
-            self.move_hoe()
-        if cmd[0] == 'seed_home':
-            self.home_hoe()
-        if cmd[0] == 'seed_move':
+        if cmd[0] == 'move':
             self.move_hoe()
 
         print("seed: " + cmd[0])
@@ -148,7 +177,7 @@ class ethtrigger(mp_module.MPModule):
     def mavlink_packet(self, m):
         '''handle mavlink packets'''
         # do nothing if mode = 0
-        if self.ethtrigger_settings.mode == 0:
+        if self.tool_settings.mode == 0:
             return
 
         if m.get_type() == "COMMAND_LONG":
@@ -161,7 +190,7 @@ class ethtrigger(mp_module.MPModule):
         if m.get_type() == 'SIMSTATE':
             self.simstate = 1
 
-        if self.ethtrigger_settings.mode == 3:
+        if self.tool_settings.mode == 3:
             if m.get_type() == 'GLOBAL_POSITION_INT':
 #                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lon * 1e-7)
 
@@ -188,18 +217,18 @@ class ethtrigger(mp_module.MPModule):
 
 
                 if self.hoestatus == HOE.HOE_INIT:
-                    if distance < self.ethtrigger_settings.hoefirstdistance:
+                    if distance < self.tool_settings.hoefirstdistance:
                         self.hoestatus = HOE.HOE_OUT
                         print("(hoe) hoeinit: " + str(distance) + " m")
                         self.move_hoe()
                 elif self.hoestatus == HOE.HOE_IN:
-                    if distance > self.ethtrigger_settings.hoemaxdistance:
+                    if distance > self.tool_settings.hoemaxdistance:
                         # we missed the seed
                         self.hoestatus = HOE.HOE_ERROR
                     elif self.passed == False:
                         # we not passed the seed now
-                        if self.ethtrigger_settings.hoeoutdistance < 0.0:
-                            if distance < -self.ethtrigger_settings.hoeoutdistance:
+                        if self.tool_settings.hoeoutdistance < 0.0:
+                            if distance < -self.tool_settings.hoeoutdistance:
                                 # save seed end ?
                                 if self.get_position(self.seed_index + 1) != None:
                                     self.hoestatus = HOE.HOE_OUT
@@ -211,7 +240,7 @@ class ethtrigger(mp_module.MPModule):
                                 else:
                                     self.hoestatus = HOE.HOE_FINISH
                                     print("hoefinish: " + str(distance) + " m")
-                    elif distance > self.ethtrigger_settings.hoeoutdistance:
+                    elif distance > self.tool_settings.hoeoutdistance:
                         # save seed end ?
                         if self.get_position(self.seed_index + 1) != None:
                             self.hoestatus = HOE.HOE_OUT
@@ -224,19 +253,19 @@ class ethtrigger(mp_module.MPModule):
                             self.hoestatus = HOE.HOE_FINISH
                             print("hoefinish: " + str(distance) + " m")
                 elif self.hoestatus == HOE.HOE_OUT:
-                    if distance > self.ethtrigger_settings.hoemaxdistance:
+                    if distance > self.tool_settings.hoemaxdistance:
                         self.hoestatus = HOE.HOE_ERROR
                         print("ERROR hoein: " + str(distance) + " m")
                     # save seed !
-                    elif distance < self.ethtrigger_settings.hoeindistance:
+                    elif distance < self.tool_settings.hoeindistance:
                         self.hoestatus = HOE.HOE_IN
                         print("(save seed) hoein: " + str(distance) + " m")
                         print("Crosstrack " + str(s_xt[0]) + " m")
                         self.move_hoe()
 
         if m.get_type() == 'CAMERA_FEEDBACK':
-            if self.ethtrigger_settings.mode < 3:
-                if self.ethtrigger_settings.mode == 2:
+            if self.tool_settings.mode < 3:
+                if self.tool_settings.mode == 2:
                     time = m.time_usec
                     index = m.img_idx
                     lat = m.lat * 1e-7
@@ -256,9 +285,9 @@ class ethtrigger(mp_module.MPModule):
                 if self.simstate == 0:
                     self.move_seed()
 
-            if self.ethtrigger_settings.verbose:
+            if self.tool_settings.verbose:
                 print("CAMERA_FEEDBACK")
 
 def init(mpstate):
     '''initialise module'''
-    return ethtrigger(mpstate)
+    return tool(mpstate)

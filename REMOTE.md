@@ -23,27 +23,28 @@
 
 | Befehl | Beschreibung |
 | ------ | ------------ |
-| ethtrigger set hoeindistance 0.1 | Setzt die Entfernung auf 0.1 Meter vor dem die Hacke vor der Pflanze eingefahren wird |
-| ethtrigger set hoeindistance | Gibt die hoeindistance zurück |
-| ethtrigger set hoeoutdistance 0.03 | Setzt die Entfernung auf Meter 0.03 Meter nachdem die Hacke nach der Pflanze ausgefahren wird | 
-| ethtrigger set hoeoutdistance | Gibt die hoeoutdistance zurück |
-| ethtrigger set hoemaxdistance 2.1 | Setzt die maximale Entfernung auf 2.1 Meter zu einer Pflanze, wird diese Entfernung überschritten, dann geht der Betriebsmode 3 in Störung (wenn man an einer Pflanze vorbei fährt) |
-| ethtrigger set hoemaxdistance | Gibt die hoemaxdistance zurück |
-| ethtrigger set steps | Setzt die Anzahl der Motorschritte für die Sähmaschine |
-| ethtrigger set steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
-| ethtrigger set stepshoe | Setzt die Anzahl der Motorschritte für die Hacke |
-| ethtrigger set stepshoe | Gibt die Anzahl der Motorschritte für die Hacke zurück |
-| ethtrigger set mode 1 | Setzt den Betriebmode des Feldroboters auf 1 |
-| ethtrigger set mode | Gibt den aktuelle Betriebmode des Feldroboters zurück |
-| ethtrigger set seedfile /home/pi/data/webaro/seed.txt | Setzt die Datendatei auf /home/pi/data/webaro/seed.txt |
-| ethtrigger set seedfile | Gibt die aktuelle Datendatei zurück |
-| ethtrigger seed hoe_home | Fährt die Hacke in die Home Position |
-| ethtrigger seed hoe_move | Fährt die Hacke in die nächste Position |
-| ethtrigger seed seed_home | Fährt die Sämaschine in die Home Position |
-| ethtrigger seed seed_move | Aktiviert die Sämaschine Auswurf ein Saatkorn |
-| ethtrigger seed read | Liest Daten aus der Datendatei ein |
-| ethtrigger seed write | Schreibt Daten in Datendatei |
-| ethtrigger seed reset | Setzt den Betriebsmode 3 zurück |
+| tool set hoeindistance 0.1 | Setzt die Entfernung auf 0.1 Meter vor dem die Hacke vor der Pflanze eingefahren wird |
+| tool set hoeindistance | Gibt die hoeindistance zurück |
+| tool set hoeoutdistance 0.03 | Setzt die Entfernung auf Meter 0.03 Meter nachdem die Hacke nach der Pflanze ausgefahren wird | 
+| tool set hoeoutdistance | Gibt die hoeoutdistance zurück |
+| tool set hoemaxdistance 2.1 | Setzt die maximale Entfernung auf 2.1 Meter zu einer Pflanze, wird diese Entfernung überschritten, dann geht der Betriebsmode 3 in Störung (wenn man an einer Pflanze vorbei fährt) |
+| tool set hoemaxdistance | Gibt die hoemaxdistance zurück |
+| tool set steps | Setzt die Anzahl der Motorschritte für die Sähmaschine |
+| tool set steps | Gibt die Anzahl der Motorschritte für die Sähmaschine zurück |
+| tool set stepshoe | Setzt die Anzahl der Motorschritte für die Hacke |
+| tool set stepshoe | Gibt die Anzahl der Motorschritte für die Hacke zurück |
+| tool set mode 1 | Setzt den Betriebmode des Feldroboters auf 1 |
+| tool set mode | Gibt den aktuelle Betriebmode des Feldroboters zurück |
+| tool set seedfile /home/pi/data/webaro/seed.txt | Setzt die Datendatei auf /home/pi/data/webaro/seed.txt |
+| tool set seedfile | Gibt die aktuelle Datendatei zurück |
+| tool hoe home | Fährt die Hacke in die Home Position |
+| tool hoe move | Fährt die Hacke in die nächste Position |
+| tool seeder home | Fährt die Sämaschine in die Home Position |
+| tool seeder move | Aktiviert die Sämaschine Auswurf ein Saatkorn |
+| tool read | Liest Daten aus der Datendatei ein |
+| tool write | Schreibt Daten in Datendatei |
+| tool clear | Setzt den Seed speicher zurück |
+| tool reset | Setzt den Betriebsmode 3 zurück |
 
 ### Betriebsmode
 
