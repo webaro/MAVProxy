@@ -49,7 +49,7 @@ class tool(mp_module.MPModule):
               ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
-        self.add_command('tool', self.cmd_tool, "tool module", ['status','set','seed'])
+        self.add_command('tool', self.cmd_tool, "tool module", ['status','set','seeder', 'hoe', 'read', 'write', 'reset', 'clear'])
 
         self.simstate = 0
         self.hoestatus = HOE.HOE_INIT
@@ -82,7 +82,7 @@ class tool(mp_module.MPModule):
             self.write_command(args[1:])
         elif args[0] == "reset":
             self.reset_command(args[1:])
-        elif args[0] == "reset":
+        elif args[0] == "clear":
             self.clear_command(args[1:])
         else:
             print(self.usage())
