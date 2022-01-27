@@ -168,6 +168,7 @@ class MPSettings(object):
             self.show(args[0])
         else:
             self.set(args[0], args[1])
+            self.show(args[0])
 
     def set_callback(self, callback):
         '''set a callback to be called on set()'''
