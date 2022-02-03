@@ -41,7 +41,9 @@ class tool(mp_module.MPModule):
         self.tool_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('seeder_steps', int, 200),
+              ('seeder_speed', int, 200),
               ('hoe_steps', int, 400),
+              ('hoe_speed', int, 400),
               ('hoe_outdistance', float, 0.01),   # hoeoutdistance m
               ('hoe_indistance', float, 0.18),    # hoeindistance m
               ('hoe_firstdistance', float, 2.0),  # hoefirstdistance m
@@ -49,6 +51,7 @@ class tool(mp_module.MPModule):
               ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
+        self.tool_settings.set_callback(self.set_callback)
         self.add_command('tool', self.cmd_tool, "tool module", ['status','set','seeder', 'hoe', 'read', 'write', 'reset', 'clear'])
 
         self.simstate = 0
@@ -91,6 +94,14 @@ class tool(mp_module.MPModule):
         '''returns information about module'''
         return("steps: " + str(self.tool_settings.steps))
 
+    def set_callback(self, setting):
+        if setting.name == "hoe_speed":
+            self.speed_hoe(setting.value)
+        if setting.name == 'seeder_speed':
+            self.speed_seed(setting.value)
+
+#        print("Changing %s to %s" % (setting.name, setting.value))
+
     def send_seeder(self, msg):
         # send only in none SITL
         if self.simstate == 0:
@@ -114,12 +125,20 @@ class tool(mp_module.MPModule):
         message = "yh\r"
         self.send_seeder(message)
 
+    def speed_hoe(self, speed):
+        message = "ys" + str(speed) + "\r"
+        self.send_seeder(message)
+
     def move_seed(self):
         message = "xt" + str(self.tool_settings.steps) + "\r"
         self.send_seeder(message)
 
     def home_seed(self):
         message = "xh\r"
+        self.send_seeder(message)
+
+    def speed_seed(self, speed):
+        message = "xs" + str(speed) + "\r"
         self.send_seeder(message)
 
     def read_command(self, cmd):
