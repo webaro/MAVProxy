@@ -101,9 +101,11 @@ class lift(mp_module.MPModule):
         if m.get_type() == "STATUSTEXT":
             if m.text == "lift up":
                 print("lift up")
+                self.lift_up()
 
             if m.text.startswith("lift down"):
                 print("lift down")
+                self.lift_down()
 
         # do nothing if mode = 0
         if self.lift_settings.mode == 0:
