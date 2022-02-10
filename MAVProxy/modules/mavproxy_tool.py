@@ -48,7 +48,7 @@ class tool(mp_module.MPModule):
               ('hoe_indistance', float, 0.18),    # hoeindistance m
               ('hoe_firstdistance', float, 2.0),  # hoefirstdistance m
               ('hoe_maxdistance', float, 2.25),   # hoemaxdistance m
-              ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
+              ('mode', int, 0),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
         self.tool_settings.set_callback(self.set_callback)
@@ -62,6 +62,9 @@ class tool(mp_module.MPModule):
         self.seeds['seeds'] = []
         self.outindex = 0
         self.passed = False
+
+        self.hoe_speed_read()
+        self.seed_speed_read()
 
     def usage(self):
         '''show help on command line options'''
@@ -96,11 +99,9 @@ class tool(mp_module.MPModule):
 
     def set_callback(self, setting):
         if setting.name == "hoe_speed":
-            self.speed_hoe(setting.value)
+            self.hoe_speed(setting.value)
         if setting.name == 'seeder_speed':
-            self.speed_seed(setting.value)
-
-#        print("Changing %s to %s" % (setting.name, setting.value))
+            self.seed_speed(setting.value)
 
     def send_seeder(self, msg):
         # send only in none SITL
@@ -117,29 +118,45 @@ class tool(mp_module.MPModule):
                 self.s.settimeout(None)
                 self.s.send(MESSAGE.encode())
 
-    def move_hoe(self):
-        message = "yt" + str(self.tool_settings.stepshoe) + "\r"
+    def hoe_move(self):
+        message = "yt" + str(self.tool_settings.hoe_steps) + "\r"
         self.send_seeder(message)
 
-    def home_hoe(self):
+    def hoe_home(self):
         message = "yh\r"
         self.send_seeder(message)
 
-    def speed_hoe(self, speed):
+    def hoe_speed(self, speed):
         message = "ys" + str(speed) + "\r"
         self.send_seeder(message)
 
-    def move_seed(self):
-        message = "xt" + str(self.tool_settings.steps) + "\r"
+    def hoe_speed_read(self):
+        message = "ys\r"
+        self.send_seeder(message)
+        data = self.s.recv(96)
+        num = int(data)
+        if(num > 1):
+            self.tool_settings.hoe_speed = num
+
+    def seed_move(self):
+        message = "xt" + str(self.tool_settings.seeder_steps) + "\r"
         self.send_seeder(message)
 
-    def home_seed(self):
+    def seed_home(self):
         message = "xh\r"
         self.send_seeder(message)
 
-    def speed_seed(self, speed):
+    def seed_speed(self, speed):
         message = "xs" + str(speed) + "\r"
         self.send_seeder(message)
+
+    def seed_speed_read(self):
+        message = "xs\r"
+        self.send_seeder(message)
+        data = self.s.recv(96)
+        num = int(data)
+        if(num > 1):
+            self.tool_settings.seeder_speed = num
 
     def read_command(self, cmd):
         with open(self.tool_settings.seedfile) as json_file:
@@ -160,19 +177,21 @@ class tool(mp_module.MPModule):
 
     def hoe_command(self, cmd):
         if cmd[0] == 'home':
-            self.home_hoe()
+            self.hoe_home()
         if cmd[0] == 'move':
-            self.move_hoe()
+            self.hoe_move()
+        if cmd[0] == 'read':
+            self.hoe_speed_read()
 
     def seeder_command(self, cmd):
         if cmd[0] == 'home':
-            self.home_hoe()
+            self.seed_home()
         if cmd[0] == 'move':
-            self.move_hoe()
+            self.seed_move()
+        if cmd[0] == 'read':
+            self.seed_speed_read()
         if cmd[0] == 'dump':
             print(json.dumps(self.seeds, indent=4))
-
-        print("seed: " + cmd[0])
 
     def get_position(self, index):
         for dict in self.seeds['seeds']:
@@ -226,7 +245,7 @@ class tool(mp_module.MPModule):
                     if distance < self.tool_settings.hoefirstdistance:
                         self.hoestatus = HOE.HOE_OUT
                         print("(hoe) hoeinit: " + str(distance) + " m")
-                        self.move_hoe()
+                        self.hoe_move()
                 elif self.hoestatus == HOE.HOE_IN:
                     if distance > self.tool_settings.hoemaxdistance:
                         # we missed the seed
@@ -242,7 +261,7 @@ class tool(mp_module.MPModule):
                                     self.seed_position = self.get_position(self.seed_index)
                                     print("(hoe) hoeout: " + str(-distance) + " m")
                                     print("Crosstrack " + str(s_xt[0]) + " m")
-                                    self.move_hoe()
+                                    self.hoe_move()
                                 else:
                                     self.hoestatus = HOE.HOE_FINISH
                                     print("hoefinish: " + str(distance) + " m")
@@ -254,7 +273,7 @@ class tool(mp_module.MPModule):
                             self.seed_position = self.get_position(self.seed_index)
                             print("(hoe) hoeout: " + str(distance) + " m")
                             print("Crosstrack " + str(s_xt[0]) + " m")
-                            self.move_hoe()
+                            self.hoe_move()
                         else:
                             self.hoestatus = HOE.HOE_FINISH
                             print("hoefinish: " + str(distance) + " m")
@@ -267,7 +286,7 @@ class tool(mp_module.MPModule):
                         self.hoestatus = HOE.HOE_IN
                         print("(save seed) hoein: " + str(distance) + " m")
                         print("Crosstrack " + str(s_xt[0]) + " m")
-                        self.move_hoe()
+                        self.hoe_move()
 
         if m.get_type() == 'CAMERA_FEEDBACK':
             if self.tool_settings.mode < 3:
@@ -289,7 +308,7 @@ class tool(mp_module.MPModule):
 
                 # send only in none SITL
                 if self.simstate == 0:
-                    self.move_seed()
+                    self.seed_move()
 
             if self.tool_settings.verbose:
                 print("CAMERA_FEEDBACK")
