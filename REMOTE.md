@@ -59,7 +59,7 @@
 | 2 | Sähnen, Positionen der Pflanzen werden aufgenommen |
 | 3 | Hacken |
 
-### Verfahren aussäen und Positionen speichern
+### Verfahren zum Aussäen und Positionen speichern
 File für Daten setzen: `tool set seed file /home/pi/data/webaro/seed.txt`
 
 Datenaufnahme starten: `tool seeder start`
