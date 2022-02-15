@@ -3,7 +3,6 @@
 import os
 import os.path
 import sys
-import json
 import socket
 
 import numpy as np
@@ -44,10 +43,10 @@ class tool(mp_module.MPModule):
               ('seeder_speed', int, 200),
               ('hoe_steps', int, 400),
               ('hoe_speed', int, 400),
-              ('hoe_outdistance', float, 0.01),   # hoeoutdistance m
-              ('hoe_indistance', float, 0.18),    # hoeindistance m
-              ('hoe_firstdistance', float, 2.0),  # hoefirstdistance m
-              ('hoe_maxdistance', float, 2.25),   # hoemaxdistance m
+              ('hoe_outdistance', float, 0.01),   # hoe_outdistance m
+              ('hoe_indistance', float, 0.18),    # hoe_indistance m
+              ('hoe_firstdistance', float, 2.0),  # hoe_firstdistance m
+              ('hoe_maxdistance', float, 2.25),   # hoe_maxdistance m
               ('mode', int, 0),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
@@ -57,18 +56,17 @@ class tool(mp_module.MPModule):
         self.simstate = 0
         self.hoestatus = HOE.HOE_INIT
         self.seed_index = 1
-        self.seed_position = None
-        self.seeds = {}
-        self.seeds['seeds'] = []
-        self.outindex = 0
+        self.seed_index_log = 1
+        self.seed_lat = 0.0
+        self.seed_lng = 0.0
         self.passed = False
 
-        self.hoe_speed_read()
-        self.seed_speed_read()
+#        self.hoe_speed_read()
+#        self.seed_speed_read()
 
     def usage(self):
         '''show help on command line options'''
-        return "Usage: tool <status|set verbose|set steps|set stepshoe|set hoeoutdistance|set hoeindistance|set hoefirstdistance|set hoemaxdistance|set mode|set seedfile>"
+        return "Usage: tool <status|set verbose|set steps|set stepshoe|set hoe_outdistance|set hoe_indistance|set hoe_firstdistance|set hoemaxdistance|set mode|set seedfile>"
 
     def cmd_tool(self, args):
         '''control behaviour of the module'''
@@ -95,7 +93,7 @@ class tool(mp_module.MPModule):
 
     def status(self):
         '''returns information about module'''
-        return("steps: " + str(self.tool_settings.steps))
+        return("steps: " + str(self.tool_settings.seeder_steps))
 
     def set_callback(self, setting):
         if setting.name == "hoe_speed":
@@ -138,6 +136,18 @@ class tool(mp_module.MPModule):
         if(num > 1):
             self.tool_settings.hoe_speed = num
 
+    def hoe_start(self):
+        self.hoestatus = HOE.HOE_INIT
+        self.seedfile = open(self.tool_settings.seedfile)
+        self.read_next_position()
+        self.seed_index = 1
+        self.tool_settings.mode = 3
+
+    def hoe_stop(self):
+        self.seedfile.close()
+        self.seed_index = 1
+        self.tool_settings.mode = 0
+
     def seed_move(self):
         message = "xt" + str(self.tool_settings.seeder_steps) + "\r"
         self.send_seeder(message)
@@ -158,19 +168,20 @@ class tool(mp_module.MPModule):
         if(num > 1):
             self.tool_settings.seeder_speed = num
 
-    def read_command(self, cmd):
-        with open(self.tool_settings.seedfile) as json_file:
-            self.seeds = json.load(json_file)
-            self.seed_position = self.get_position(self.seed_index)
+    def seed_start(self):
+        self.seedfile = open(self.tool_settings.seedfile, 'w')
+        self.seed_index = 1
+        self.tool_settings.mode = 2
 
-    def write_command(self, cmd):
-        with open(self.tool_settings.seedfile, 'w') as json_file:
-            json.dump(self.seeds, json_file)
+    def seed_stop(self):
+        self.seedfile.close()
+        self.seed_index = 1
+        self.tool_settings.mode = 0
 
     def reset_command(self, cmd):
         self.hoestatus = HOE.HOE_INIT
+        self.seedfile.close()
         self.seed_index = 1
-        self.seed_position = self.get_position(self.seed_index)
 
     def clear_command(self, cmd):
         self.hoestatus = HOE.HOE_INIT
@@ -180,6 +191,10 @@ class tool(mp_module.MPModule):
             self.hoe_home()
         if cmd[0] == 'move':
             self.hoe_move()
+        if cmd[0] == 'start':
+            self.hoe_start()
+        if cmd[0] == 'stop':
+            self.hoe_stop()
         if cmd[0] == 'read':
             self.hoe_speed_read()
 
@@ -190,14 +205,21 @@ class tool(mp_module.MPModule):
             self.seed_move()
         if cmd[0] == 'read':
             self.seed_speed_read()
-        if cmd[0] == 'dump':
-            print(json.dumps(self.seeds, indent=4))
+        if cmd[0] == 'start':
+            self.seed_start()
+        if cmd[0] == 'stop':
+            self.seed_stop()
 
-    def get_position(self, index):
-        for dict in self.seeds['seeds']:
-            if dict['index'] == index:
-                return dict
-        return None
+    def read_next_position(self):
+        result = self.seedfile.readline().split()
+        if len(result) == 0:
+            return False
+        self.seed_index = int(result[0])
+        self.seed_time = int(result[1])
+        self.seed_lat = float(result[2])
+        self.seed_lng = float(result[3])
+        self_seed_index_log = int(result[4])
+        return True
 
     def mavlink_packet(self, m):
         '''handle mavlink packets'''
@@ -205,24 +227,15 @@ class tool(mp_module.MPModule):
         if self.tool_settings.mode == 0:
             return
 
-        if m.get_type() == "COMMAND_LONG":
-            print ("Get Long")
-            if m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONFIGURE:
-                print ("Got Message Digicam_configure")
-            elif m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONTROL:
-                print ("Got Message Digicam_control")
-
         if m.get_type() == 'SIMSTATE':
             self.simstate = 1
 
         if self.tool_settings.mode == 3:
             if m.get_type() == 'GLOBAL_POSITION_INT':
-#                distance = mp_util.gps_distance(self.seed_position['lat'], self.seed_position['lng'], m.lat * 1e-7, m.lon * 1e-7)
-
                 wgs84 = nv.FrameE(name='WGS84')
                 positionA = wgs84.GeoPoint(latitude=(m.lat * 1e-7), longitude=(m.lon * 1e-7), degrees=True)
                 positionB, azB = positionA.displace(1, (m.hdg / 100.0), degrees=True)
-                positionC = wgs84.GeoPoint(latitude=self.seed_position['lat'], longitude=self.seed_position['lng'], degrees=True)
+                positionC = wgs84.GeoPoint(latitude=self.seed_lat, longitude=self.seed_lng, degrees=True)
                 s_AB, _azia, _azib = positionA.distance_and_azimuth(positionB)
 
                 n_EA1_E = nv.lat_lon2n_E(positionA.latitude, positionA.longitude)
@@ -240,52 +253,54 @@ class tool(mp_module.MPModule):
                 distance = nv.great_circle_distance(n_EA1_E, n_EC_E)[0]
   #              print("Entfernung: " + str(distance))
 
-
                 if self.hoestatus == HOE.HOE_INIT:
-                    if distance < self.tool_settings.hoefirstdistance:
+                    if distance < self.tool_settings.hoe_firstdistance:
                         self.hoestatus = HOE.HOE_OUT
-                        print("(hoe) hoeinit: " + str(distance) + " m")
+                        if self.tool_settings.verbose:
+                            print("(hoe) hoeinit: " + str(distance) + " m")
                         self.hoe_move()
                 elif self.hoestatus == HOE.HOE_IN:
-                    if distance > self.tool_settings.hoemaxdistance:
+                    if distance > self.tool_settings.hoe_maxdistance:
                         # we missed the seed
                         self.hoestatus = HOE.HOE_ERROR
                     elif self.passed == False:
                         # we not passed the seed now
-                        if self.tool_settings.hoeoutdistance < 0.0:
-                            if distance < -self.tool_settings.hoeoutdistance:
+                        if self.tool_settings.hoe_outdistance < 0.0:
+                            if distance < -self.tool_settings.hoe_outdistance:
                                 # save seed end ?
-                                if self.get_position(self.seed_index + 1) != None:
+                                if self.read_next_position() == True:
                                     self.hoestatus = HOE.HOE_OUT
-                                    self.seed_index += 1
-                                    self.seed_position = self.get_position(self.seed_index)
-                                    print("(hoe) hoeout: " + str(-distance) + " m")
-                                    print("Crosstrack " + str(s_xt[0]) + " m")
+                                    if self.tool_settings.verbose:
+                                        print("(hoe) hoeout: " + str(-distance) + " m")
+                                        print("Crosstrack " + str(s_xt[0]) + " m")
                                     self.hoe_move()
                                 else:
                                     self.hoestatus = HOE.HOE_FINISH
-                                    print("hoefinish: " + str(distance) + " m")
-                    elif distance > self.tool_settings.hoeoutdistance:
+                                    if self.tool_settings.verbose:
+                                        print("hoefinish: " + str(distance) + " m")
+                    elif distance > self.tool_settings.hoe_outdistance:
                         # save seed end ?
-                        if self.get_position(self.seed_index + 1) != None:
+                        if self.read_next_position() == True:
                             self.hoestatus = HOE.HOE_OUT
-                            self.seed_index += 1
-                            self.seed_position = self.get_position(self.seed_index)
-                            print("(hoe) hoeout: " + str(distance) + " m")
-                            print("Crosstrack " + str(s_xt[0]) + " m")
+                            if self.tool_settings.verbose:
+                                print("(hoe) hoeout: " + str(distance) + " m")
+                                print("Crosstrack " + str(s_xt[0]) + " m")
                             self.hoe_move()
                         else:
                             self.hoestatus = HOE.HOE_FINISH
-                            print("hoefinish: " + str(distance) + " m")
+                            if self.tool_settings.verbose:
+                                print("hoefinish: " + str(distance) + " m")
                 elif self.hoestatus == HOE.HOE_OUT:
-                    if distance > self.tool_settings.hoemaxdistance:
+                    if distance > self.tool_settings.hoe_maxdistance:
                         self.hoestatus = HOE.HOE_ERROR
-                        print("ERROR hoein: " + str(distance) + " m")
+                        if self.tool_settings.verbose:
+                            print("ERROR hoein: " + str(distance) + " m")
                     # save seed !
-                    elif distance < self.tool_settings.hoeindistance:
+                    elif distance < self.tool_settings.hoe_indistance:
                         self.hoestatus = HOE.HOE_IN
-                        print("(save seed) hoein: " + str(distance) + " m")
-                        print("Crosstrack " + str(s_xt[0]) + " m")
+                        if self.tool_settings.verbose:
+                            print("(save seed) hoein: " + str(distance) + " m")
+                            print("Crosstrack " + str(s_xt[0]) + " m")
                         self.hoe_move()
 
         if m.get_type() == 'CAMERA_FEEDBACK':
@@ -296,15 +311,15 @@ class tool(mp_module.MPModule):
                     lat = m.lat * 1e-7
                     lng = m.lng * 1e-7
 
-                    print("Lat: " + str(lat) + "  Lon: " + str(lng) + "  Index: " + str(index))
+                    if self.tool_settings.verbose:
+                        print("Lat: " + str(lat) + "  Lon: " + str(lng) + "  Index: " + str(index))
 
-                    self.seeds['seeds'].append({
-                        'time': time,
-                        'index': index,
-                        'lat': lat,
-                        'lng': lng
-                    })
-                    #print(json.dumps(self.seeds, indent=4))
+                    try:
+                        self.seedfile.write(str(self.seed_index) + " " + str(time) + " " + str(lat) + " " + str(lng) + " "+ str(index)+ "\r\n")
+                        self.seedfile.flush()
+                    except:
+                        self.seed_stop()
+                    self.seed_index = self.seed_index + 1
 
                 # send only in none SITL
                 if self.simstate == 0:
