@@ -41,7 +41,7 @@ class tool(mp_module.MPModule):
             [ ('verbose', bool, False),
               ('seeder_steps', int, 200),
               ('seeder_speed', int, 200),
-              ('hoe_steps', int, 400),
+              ('hoe_steps', int, 3200),
               ('hoe_speed', int, 400),
               ('hoe_outdistance', float, 0.01),   # hoe_outdistance m
               ('hoe_indistance', float, 0.18),    # hoe_indistance m
