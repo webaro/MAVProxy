@@ -14,7 +14,12 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 
-TCP_IP = '192.168.15.50'
+TCP_IP_1 = '192.168.15.50'
+TCP_IP_2 = '192.168.15.51'
+TCP_IP_3 = '192.168.15.52'
+TCP_IP_4 = '192.168.15.53'
+TCP_IP_5 = '192.168.15.54'
+TCP_IP_6 = '192.168.15.55'
 TCP_PORT = 23
 
 class HOE:
@@ -29,11 +34,51 @@ class tool(mp_module.MPModule):
         """Initialise module"""
         super(tool, self).__init__(mpstate, "tool", "")
 
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s.settimeout(1)
-            self.s.connect((TCP_IP, TCP_PORT))
-            self.s.settimeout(None)
+            self.s1.settimeout(1)
+            self.s1.connect((TCP_IP_1, TCP_PORT))
+            self.s1.settimeout(None)
+        except:
+            pass
+
+        self.s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.s2.settimeout(1)
+            self.s2.connect((TCP_IP_2, TCP_PORT))
+            self.s2.settimeout(None)
+        except:
+            pass
+
+        self.s3 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.s3.settimeout(1)
+            self.s3.connect((TCP_IP_3, TCP_PORT))
+            self.s3.settimeout(None)
+        except:
+            pass
+
+        self.s4 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.s4.settimeout(1)
+            self.s4.connect((TCP_IP_4, TCP_PORT))
+            self.s4.settimeout(None)
+        except:
+            pass
+
+        self.s5 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.s5.settimeout(1)
+            self.s5.connect((TCP_IP_5, TCP_PORT))
+            self.s5.settimeout(None)
+        except:
+            pass
+
+        self.s6 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.s6.settimeout(1)
+            self.s6.connect((TCP_IP_6, TCP_PORT))
+            self.s6.settimeout(None)
         except:
             pass
 
@@ -106,15 +151,70 @@ class tool(mp_module.MPModule):
         if self.simstate == 0:
             MESSAGE = msg
             try:
-                self.s.send(MESSAGE.encode())
+                self.s1.send(MESSAGE.encode())
             except:
                 # recreate the socket and reconnect
-                self.s.close()
-                self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s.settimeout(1)
-                self.s.connect((TCP_IP, TCP_PORT))
-                self.s.settimeout(None)
-                self.s.send(MESSAGE.encode())
+                self.s1.close()
+                self.s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s1.settimeout(1)
+                self.s1.connect((TCP_IP_1, TCP_PORT))
+                self.s1.settimeout(None)
+                self.s1.send(MESSAGE.encode())
+
+            try:
+                self.s2.send(MESSAGE.encode())
+            except:
+                # recreate the socket and reconnect
+                self.s2.close()
+                self.s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s2.settimeout(1)
+                self.s2.connect((TCP_IP_2, TCP_PORT))
+                self.s2.settimeout(None)
+                self.s2.send(MESSAGE.encode())
+
+            try:
+                self.s3.send(MESSAGE.encode())
+            except:
+                # recreate the socket and reconnect
+                self.s3.close()
+                self.s3 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s3.settimeout(1)
+                self.s3.connect((TCP_IP_3, TCP_PORT))
+                self.s3.settimeout(None)
+                self.s3.send(MESSAGE.encode())
+
+            try:
+                self.s4.send(MESSAGE.encode())
+            except:
+                # recreate the socket and reconnect
+                self.s4.close()
+                self.s4 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s4.settimeout(1)
+                self.s4.connect((TCP_IP_4, TCP_PORT))
+                self.s4.settimeout(None)
+                self.s4.send(MESSAGE.encode())
+
+            try:
+                self.s5.send(MESSAGE.encode())
+            except:
+                # recreate the socket and reconnect
+                self.s5.close()
+                self.s5 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s5.settimeout(1)
+                self.s5.connect((TCP_IP_5, TCP_PORT))
+                self.s5.settimeout(None)
+                self.s5.send(MESSAGE.encode())
+
+            try:
+                self.s6.send(MESSAGE.encode())
+            except:
+                # recreate the socket and reconnect
+                self.s6.close()
+                self.s6 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.s6.settimeout(1)
+                self.s6.connect((TCP_IP_6, TCP_PORT))
+                self.s6.settimeout(None)
+                self.s6.send(MESSAGE.encode())
 
     def hoe_move(self):
         message = "yt" + str(self.tool_settings.hoe_steps) + "\r"
