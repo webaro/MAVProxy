@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from datetime import datetime
+import shutil
 import socket
 
 import nvector as nv
@@ -269,6 +271,8 @@ class tool(mp_module.MPModule):
 
     def seed_stop(self):
         self.seedfile.close()
+        date_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        shutil.copy2(self.tool_settings.seedfile, self.tool_settings.seedfile + '.'+ date_time)
         self.seed_index = 1
         self.tool_settings.mode = 0
 
