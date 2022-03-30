@@ -1,17 +1,10 @@
 #!/usr/bin/env python
 
-import os
-import os.path
-import sys
 import socket
 
-import numpy as np
 import nvector as nv
 
-from pymavlink import mavutil
-
 from MAVProxy.modules.lib import mp_module
-from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 
 TCP_IP_1 = '192.168.15.50'
