@@ -91,7 +91,8 @@ class tool(mp_module.MPModule):
               ('hoe_outdistance', float, 0.01),   # hoe_outdistance m
               ('hoe_indistance', float, 0.18),    # hoe_indistance m
               ('hoe_firstdistance', float, 2.0),  # hoe_firstdistance m
-              ('hoe_maxdistance', float, 2.25),   # hoe_maxdistance m
+              ('hoe_maxdistance', float, 25.0),   # hoe_maxdistance m
+              ('hoe_maxcrosstrack', float, 0.40),  # hoe_maxcrosstrack m
               ('mode', int, 0),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
               ('seedfile', str, '/home/pi/data/webaro/seed.txt'),
           ])
@@ -343,6 +344,7 @@ class tool(mp_module.MPModule):
                 n_EB_E = nv.lat_lon2n_E(positionC.latitude, positionC.longitude)
                 path = (n_EA1_E, n_EA2_E)
                 s_xt = nv.cross_track_distance(path, n_EB_E)
+                crosstrackerror = abs(s_xt[0])
  #               print("Crosstrack " + str(s_xt[0]))
 
                 n_EC_E = nv.closest_point_on_great_circle(path, n_EB_E)
@@ -354,10 +356,10 @@ class tool(mp_module.MPModule):
   #              print("Entfernung: " + str(distance))
 
                 if self.hoestatus == HOE.HOE_INIT:
-                    if distance < self.tool_settings.hoe_firstdistance:
+                    if (distance < self.tool_settings.hoe_firstdistance) and (crosstrackerror < self.tool_settings.hoe_firstdistance):
                         self.hoestatus = HOE.HOE_OUT
                         if self.tool_settings.verbose:
-                            print("(hoe) hoeinit: " + str(distance) + " m")
+                            print("(hoe) hoeinit: " + str(round(distance, 3)) + " m")
                         self.hoe_move()
                 elif self.hoestatus == HOE.HOE_IN:
                     if distance > self.tool_settings.hoe_maxdistance:
@@ -366,42 +368,44 @@ class tool(mp_module.MPModule):
                     elif self.passed == False:
                         # we not passed the seed now
                         if self.tool_settings.hoe_outdistance < 0.0:
-                            if distance < -self.tool_settings.hoe_outdistance:
+                            if (distance < -self.tool_settings.hoe_outdistance) and (crosstrackerror < self.tool_settings.hoe_maxcrosstrack):
                                 # save seed end ?
                                 if self.read_next_position() == True:
                                     self.hoestatus = HOE.HOE_OUT
                                     if self.tool_settings.verbose:
-                                        print("(hoe) hoeout: " + str(-distance) + " m")
-                                        print("Crosstrack " + str(s_xt[0]) + " m")
+                                        print("(hoe) hoeout: " + str(round(-distance, 3)) + " m")
+                                        print("Crosstrack " + str(round(s_xt[0], 3)) + " m")
                                     self.hoe_move()
                                 else:
                                     self.hoestatus = HOE.HOE_FINISH
                                     if self.tool_settings.verbose:
-                                        print("hoefinish: " + str(distance) + " m")
-                    elif distance > self.tool_settings.hoe_outdistance:
+                                        print("hoefinish: " + str(round(distance, 3)) + " m")
+                    elif (distance > self.tool_settings.hoe_outdistance) and (crosstrackerror < self.tool_settings.hoe_maxcrosstrack):
                         # save seed end ?
                         if self.read_next_position() == True:
                             self.hoestatus = HOE.HOE_OUT
                             if self.tool_settings.verbose:
-                                print("(hoe) hoeout: " + str(distance) + " m")
-                                print("Crosstrack " + str(s_xt[0]) + " m")
+                                print("(hoe) hoeout: " + str(round(distance, 3)) + " m")
+                                print("Crosstrack " + str(round(s_xt[0], 3)) + " m")
                             self.hoe_move()
                         else:
                             self.hoestatus = HOE.HOE_FINISH
                             if self.tool_settings.verbose:
-                                print("hoefinish: " + str(distance) + " m")
+                                print("hoefinish: " + str(round(distance, 3)) + " m")
                 elif self.hoestatus == HOE.HOE_OUT:
                     if distance > self.tool_settings.hoe_maxdistance:
                         self.hoestatus = HOE.HOE_ERROR
                         if self.tool_settings.verbose:
-                            print("ERROR hoein: " + str(distance) + " m")
+                            print("ERROR hoein: " + str(round(distance, 3)) + " m")
                     # save seed !
-                    elif distance < self.tool_settings.hoe_indistance:
+                    elif (distance < self.tool_settings.hoe_indistance) and (crosstrackerror < self.tool_settings.hoe_maxcrosstrack):
                         self.hoestatus = HOE.HOE_IN
                         if self.tool_settings.verbose:
-                            print("(save seed) hoein: " + str(distance) + " m")
-                            print("Crosstrack " + str(s_xt[0]) + " m")
+                            print("(save seed) hoein: " + str(round(distance, 3)) + " m")
+                            print("Crosstrack " + str(round(s_xt[0], 3)) + " m")
                         self.hoe_move()
+                    print("Distance   " + str(round(distance, 3)) + " m")
+                    print("Crosstrack " + str(round(s_xt[0], 3)) + " m")
 
         if m.get_type() == 'CAMERA_FEEDBACK':
             if self.tool_settings.mode < 3:
@@ -412,10 +416,10 @@ class tool(mp_module.MPModule):
                     lng = m.lng * 1e-7
 
                     if self.tool_settings.verbose:
-                        print("Lat: " + str(lat) + "  Lon: " + str(lng) + "  Index: " + str(index))
+                        print("Lat: " + str(round(lat, 7)) + "  Lon: " + str(round(lng, 7)) + "  Index: " + str(index))
 
                     try:
-                        self.seedfile.write(str(self.seed_index) + " " + str(time) + " " + str(lat) + " " + str(lng) + " "+ str(index)+ "\r\n")
+                        self.seedfile.write(str(self.seed_index) + " " + str(time) + " " + str(round(lat, 7)) + " " + str(round(lng, 7)) + " " + str(index)+ "\r\n")
                         self.seedfile.flush()
                     except:
                         self.seed_stop()
