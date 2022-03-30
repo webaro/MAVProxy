@@ -39,7 +39,7 @@ class tool(mp_module.MPModule):
 
         self.tool_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
-              ('seeder_steps', int, 200),
+              ('seeder_steps', int, 400),
               ('seeder_speed', int, 200),
               ('hoe_steps', int, 3200),
               ('hoe_speed', int, 400),
