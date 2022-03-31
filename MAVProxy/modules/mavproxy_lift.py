@@ -152,11 +152,11 @@ class lift(mp_module.MPModule):
                 print("lift stop")
                 self.lift_stop()
 
-            if m.textstartswith("lift home"):
+            if m.text.startswith("lift home"):
                 print("lift home")
                 self.lift_home()
 
-            if m.textstartswith("lift up"):
+            if m.text.startswith("lift up"):
                 print("lift up")
                 self.lift_up()
 
