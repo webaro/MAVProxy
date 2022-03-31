@@ -148,15 +148,15 @@ class lift(mp_module.MPModule):
     def mavlink_packet(self, m):
         '''handle mavlink packets'''
         if m.get_type() == "STATUSTEXT":
-            if m.text == "lift stop":
+            if m.text.startswith("lift stop"):
                 print("lift stop")
                 self.lift_stop()
 
-            if m.text == "lift home":
+            if m.textstartswith("lift home"):
                 print("lift home")
                 self.lift_home()
 
-            if m.text == "lift up":
+            if m.textstartswith("lift up"):
                 print("lift up")
                 self.lift_up()
 
