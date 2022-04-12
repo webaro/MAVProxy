@@ -40,12 +40,12 @@ class lift(mp_module.MPModule):
         self.lift_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('up', int, -1),
-              ('down', int, -35000),
+              ('lift_down', int, -35000),
               ('speed', int, 200),
               ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
           ])
         self.lift_settings.set_callback(self.set_callback)
-        self.add_command('lift', self.cmd_lift, "lift module", ['status','set','up', 'down', 'home'])
+        self.add_command('lift', self.cmd_lift, "lift module", ['status','set','lift_up', 'lift_down', 'home'])
         self.simstate = 0
 
     def usage(self):
@@ -106,19 +106,19 @@ class lift(mp_module.MPModule):
                 self.s1.send(MESSAGE.encode())
 
     def lift_down(self):
-        message = "1t" + str(self.lift_settings.down) + "\r"
+        message = "1t" + str(self.lift_settings.lift_down) + "\r"
         self.send_lift(message)
-        message = "2t" + str(self.lift_settings.down) + "\r"
+        message = "2t" + str(self.lift_settings.lift_down) + "\r"
         self.send_lift(message)
-        message = "3t" + str(self.lift_settings.down) + "\r"
+        message = "3t" + str(self.lift_settings.lift_down) + "\r"
         self.send_lift(message)
 
     def lift_up(self):
-        message = "1t" + str(self.lift_settings.up) + "\r"
+        message = "1t" + str(self.lift_settings.lift_up) + "\r"
         self.send_lift(message)
-        message = "2t" + str(self.lift_settings.up) + "\r"
+        message = "2t" + str(self.lift_settings.lift_up) + "\r"
         self.send_lift(message)
-        message = "3t" + str(self.lift_settings.up) + "\r"
+        message = "3t" + str(self.lift_settings.lift_up) + "\r"
         self.send_lift(message)
 
     def lift_home(self):
