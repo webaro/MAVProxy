@@ -39,7 +39,7 @@ class lift(mp_module.MPModule):
 
         self.lift_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
-              ('up', int, -1),
+              ('lift_up', int, -1),
               ('lift_down', int, -35000),
               ('speed', int, 200),
               ('mode', int, 2),                  # mode: 0=do nothing, 1=seed, 2=seed and collect data, 3=chop weeds
