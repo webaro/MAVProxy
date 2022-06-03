@@ -56,7 +56,7 @@ class tool(mp_module.MPModule):
 
         self.s4 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s4.settimeoutTCP_TIMEOUT)
+            self.s4.settimeout(TCP_TIMEOUT)
             self.s4.connect((TCP_IP_4, TCP_PORT))
             self.s4.settimeout(None)
         except:
