@@ -16,6 +16,7 @@ TCP_IP_4 = '192.168.15.53'
 TCP_IP_5 = '192.168.15.54'
 TCP_IP_6 = '192.168.15.55'
 TCP_PORT = 23
+TCP_TIMEOUT = 0.01
 
 class HOE:
     HOE_IN = 1
@@ -31,51 +32,51 @@ class tool(mp_module.MPModule):
 
         self.s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s1.settimeout(1)
+            self.s1.settimeout(TCP_TIMEOUT)
             self.s1.connect((TCP_IP_1, TCP_PORT))
             self.s1.settimeout(None)
         except:
-            pass
+            self.s1 = None
 
         self.s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s2.settimeout(1)
+            self.s2.settimeout(TCP_TIMEOUT)
             self.s2.connect((TCP_IP_2, TCP_PORT))
             self.s2.settimeout(None)
         except:
-            pass
+            self.s2 = None
 
         self.s3 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s3.settimeout(1)
+            self.s3.settimeout(TCP_TIMEOUT)
             self.s3.connect((TCP_IP_3, TCP_PORT))
             self.s3.settimeout(None)
         except:
-            pass
+            self.s3 = None
 
         self.s4 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s4.settimeout(1)
+            self.s4.settimeoutTCP_TIMEOUT)
             self.s4.connect((TCP_IP_4, TCP_PORT))
             self.s4.settimeout(None)
         except:
-            pass
+            self.s4 = None
 
         self.s5 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s5.settimeout(1)
+            self.s5.settimeout(TCP_TIMEOUT)
             self.s5.connect((TCP_IP_5, TCP_PORT))
             self.s5.settimeout(None)
         except:
-            pass
+            self.s5 = None
 
         self.s6 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s6.settimeout(1)
+            self.s6.settimeout(TCP_TIMEOUT)
             self.s6.connect((TCP_IP_6, TCP_PORT))
             self.s6.settimeout(None)
         except:
-            pass
+            self.s6 = None
 
         self.tool_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
@@ -146,71 +147,107 @@ class tool(mp_module.MPModule):
         # send only in none SITL
         if self.simstate == 0:
             MESSAGE = msg
-            try:
-                self.s1.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s1.close()
-                self.s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s1.settimeout(1)
-                self.s1.connect((TCP_IP_1, TCP_PORT))
-                self.s1.settimeout(None)
-                self.s1.send(MESSAGE.encode())
+            # send S1
+            if self.s1 is None:
+                try:
+                    self.s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s1.settimeout(TCP_TIMEOUT)
+                    self.s1.connect((TCP_IP_1, TCP_PORT))
+                    self.s1.settimeout(None)
+                except:
+                    self.s1 = None
 
-            try:
-                self.s2.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s2.close()
-                self.s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s2.settimeout(1)
-                self.s2.connect((TCP_IP_2, TCP_PORT))
-                self.s2.settimeout(None)
-                self.s2.send(MESSAGE.encode())
+            if self.s1 is not None:
+                try:
+                    self.s1.send(MESSAGE.encode())
+                except:
+                    self.s1.close()
+                    self.s1 = None
 
-            try:
-                self.s3.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s3.close()
-                self.s3 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s3.settimeout(1)
-                self.s3.connect((TCP_IP_3, TCP_PORT))
-                self.s3.settimeout(None)
-                self.s3.send(MESSAGE.encode())
+            # send S2
+            if self.s2 is None:
+                try:
+                    self.s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s2.settimeout(TCP_TIMEOUT)
+                    self.s2.connect((TCP_IP_3, TCP_PORT))
+                    self.s2.settimeout(None)
+                except:
+                    self.s2 = None
 
-            try:
-                self.s4.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s4.close()
-                self.s4 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s4.settimeout(1)
-                self.s4.connect((TCP_IP_4, TCP_PORT))
-                self.s4.settimeout(None)
-                self.s4.send(MESSAGE.encode())
+            if self.s2 is not None:
+                try:
+                    self.s2.send(MESSAGE.encode())
+                except:
+                    self.s2.close()
+                    self.s2 = None
 
-            try:
-                self.s5.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s5.close()
-                self.s5 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s5.settimeout(1)
-                self.s5.connect((TCP_IP_5, TCP_PORT))
-                self.s5.settimeout(None)
-                self.s5.send(MESSAGE.encode())
+            # send S3
+            if self.s3 is None:
+                try:
+                    self.s3 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s3.settimeout(TCP_TIMEOUT)
+                    self.s3.connect((TCP_IP_3, TCP_PORT))
+                    self.s3.settimeout(None)
+                except:
+                    self.s3 = None
 
-            try:
-                self.s6.send(MESSAGE.encode())
-            except:
-                # recreate the socket and reconnect
-                self.s6.close()
-                self.s6 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s6.settimeout(1)
-                self.s6.connect((TCP_IP_6, TCP_PORT))
-                self.s6.settimeout(None)
-                self.s6.send(MESSAGE.encode())
+            if self.s3 is not None:
+                try:
+                    self.s3.send(MESSAGE.encode())
+                except:
+                    self.s3.close()
+                    self.s3 = None
+
+            # send S4
+            if self.s4 is None:
+                try:
+                    self.s4 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s4.settimeout(TCP_TIMEOUT)
+                    self.s4.connect((TCP_IP_4, TCP_PORT))
+                    self.s4.settimeout(None)
+                except:
+                    self.s4 = None
+
+            if self.s4 is not None:
+                try:
+                    self.s4.send(MESSAGE.encode())
+                except:
+                    self.s4.close()
+                    self.s4 = None
+
+            # send S5
+            if self.s5 is None:
+                try:
+                    self.s5 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s5.settimeout(TCP_TIMEOUT)
+                    self.s5.connect((TCP_IP_5, TCP_PORT))
+                    self.s5.settimeout(None)
+                except:
+                    self.s5 = None
+
+            if self.s5 is not None:
+                try:
+                    self.s5.send(MESSAGE.encode())
+                except:
+                    self.s5.close()
+                    self.s5 = None
+
+            # send S6
+            if self.s6 is None:
+                try:
+                    self.s6 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.s6.settimeout(TCP_TIMEOUT)
+                    self.s6.connect((TCP_IP_6, TCP_PORT))
+                    self.s6.settimeout(None)
+                except:
+                    self.s6 = None
+
+            if self.s6 is not None:
+                try:
+                    self.s6.send(MESSAGE.encode())
+                except:
+                    self.s6.close()
+                    self.s6 = None
 
     def hoe_move(self):
         message = "yt" + str(self.tool_settings.hoe_steps) + "\r"
